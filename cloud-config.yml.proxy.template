@@ -1,0 +1,93 @@
+#cloud-config
+hostname: etcd-n00
+
+users:
+  - name: core
+
+ssh_authorized_keys:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDkdp7+1EAwfTLlrJd10fKeLqedYh6qwlpXCtk3dtChqwxKNYvNxGJV7n34earmU0hxt26oqrXCLnp1OBlqO1SifKSqwr5+LIpz2uJxHA/wqVOMHmrzTlWMw8ljCBvDcQi323USt9IxqvO9WLICiVSujXYGReVcg9QGoyViAz1NTQ== core@example.com
+
+coreos:
+  units:
+    - name: vmtoolsd.service
+      command: start
+      content: |
+        [Unit]
+        Description=VMware Tools Agent
+        Documentation=http://open-vm-tools.sourceforge.net/
+        ConditionVirtualization=vmware
+
+        [Service]
+        ExecStartPre=/usr/bin/ln -sfT /usr/share/oem/vmware-tools /etc/vmware-tools
+        ExecStart=/usr/share/oem/bin/vmtoolsd
+        TimeoutStopSec=5
+
+    - name: oem-cloudinit.service
+      command: restart
+      runtime: yes
+      content: |
+        [Unit]
+        Description=Cloudinit from VMware Backdoor
+
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/coreos-cloudinit --oem=vmware
+
+    - name: systemd-networkd.service
+      command: stop
+
+    - name: 10-ens192.network
+      runtime: true
+      content: |
+        [Match]
+        Name=ens192
+
+        [Network]
+        Address=172.20.201.204/24
+        Gateway=172.20.201.254
+        DNS=8.8.8.8
+        Domains=vdc.trans-cosmos.com.cn
+
+    - name: down-interfaces.service
+      command: start
+      content: |
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/ip link set ens192 down
+        ExecStart=/usr/bin/ip addr flush dev ens192
+
+    - name: systemd-networkd.service
+      command: restart
+
+    - name: docker-tcp.socket
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        Description=Docker Socket for the API
+
+        [Socket]
+        ListenStream=2375
+        Service=docker.service
+
+        [Install]
+        WantedBy=sockets.target
+
+    - name: docker.service
+      drop-ins:
+        - name: 10-docker.conf
+          content: |
+            [Service]
+            Environment="DOCKER_OPTS=--cluster-store=etcd://localhost:2379 --cluster-advertise=ens192:2375"
+
+  oem:
+    bug-report-url: "https://github.com/coreos/bugs/issues"
+    id: vmware
+    name: VMWare
+    version-id: "9.10.0-r3"
+
+  etcd2:
+    name: etcd-n00
+    proxy: on
+    initial-cluster: etcd-n01=http://172.20.201.201:2380,etcd-n02=http://172.20.201.202:2380,etcd-n03=http://172.20.201.203:2380
+    listen-client-urls: http://0.0.0.0:2379
