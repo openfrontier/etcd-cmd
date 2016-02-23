@@ -61,6 +61,7 @@ coreos:
 
     - name: etcd2.service
       command: start
+      enable: true
       drop-ins:
         - name: 10-etcd2.conf
           content: |
