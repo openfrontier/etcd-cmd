@@ -1,5 +1,5 @@
 #cloud-config
-hostname: etcd-n03
+hostname: etcd-n01
 
 users:
   - name: core
@@ -43,7 +43,7 @@ coreos:
         Name=ens192
 
         [Network]
-        Address=172.20.201.203/24
+        Address=172.20.201.201/24
         Gateway=172.20.201.254
         DNS=8.8.8.8
         Domains=vdc.trans-cosmos.com.cn
@@ -58,6 +58,14 @@ coreos:
 
     - name: systemd-networkd.service
       command: restart
+
+    - name: etcd2.service
+      command: start
+      drop-ins:
+        - name: 10-etcd2.conf
+          content: |
+            [Unit]
+            After=network.target
 
     - name: docker-tcp.socket
       command: start
@@ -87,9 +95,9 @@ coreos:
     version-id: "9.10.0-r3"
 
   etcd2:
-    name: etcd-n03
+    name: etcd-n01
     discovery: http://172.20.201.136:2379/v2/keys/discovery/e1cae853-5920-4ca7-bd7b-8285065da535
-    initial-advertise-peer-urls: http://172.20.201.203:2380
-    advertise-client-urls: http://172.20.201.203:2379
+    initial-advertise-peer-urls: http://172.20.201.201:2380
+    advertise-client-urls: http://172.20.201.201:2379
     listen-peer-urls: http://0.0.0.0:2380
     listen-client-urls: http://0.0.0.0:2379
