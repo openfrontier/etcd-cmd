@@ -61,11 +61,6 @@ coreos:
 
     - name: etcd2.service
       command: start
-      drop-ins:
-        - name: 10-etcd2.conf
-          content: |
-            [Unit]
-            After=network.target
 
     - name: docker-tcp.socket
       command: start
