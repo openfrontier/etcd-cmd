@@ -73,7 +73,11 @@ coreos:
         [Install]
         WantedBy=sockets.target
 
+    - name: etcd2.service
+      command: start
+
     - name: docker.service
+      command: start
       drop-ins:
         - name: 10-docker.conf
           content: |
