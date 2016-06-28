@@ -1,9 +1,10 @@
 #!/bin/bash
 set -e
 
-DISCOVERY_IP=$1
-UUID=$(uuidgen)
+DISCOVERY_IP="$1"
+TOKEN_PATH="v2/keys/discovery"
+UUID="$(uuidgen)"
 
-curl -X PUT http://${DISCOVERY_IP}:2379/v2/keys/discovery/${UUID}/_config/size -d value=3
+curl -X PUT http://${DISCOVERY_IP}:2379/${TOKEN_PATH}/${UUID}/_config/size -d value=3
 
-echo "token=${UUID}"
+echo "ETCD_DISCOVERY=http://${DISCOVERY_IP}:2379/${TOKEN_PATH}/${UUID}"
