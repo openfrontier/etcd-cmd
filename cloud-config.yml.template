@@ -81,7 +81,7 @@ coreos:
         - name: 10-docker.conf
           content: |
             [Service]
-            Environment="DOCKER_OPTS=--cluster-store=etcd://localhost:2379 --cluster-advertise=ens192:2375"
+            Environment="DOCKER_OPTS=--cluster-store=etcd://localhost:2379 --cluster-advertise=ens192:2375 --registry-mirror=http://92c2df3f.m.daocloud.io"
 
   oem:
     bug-report-url: "https://github.com/coreos/bugs/issues"
